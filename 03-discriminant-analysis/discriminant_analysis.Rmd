@@ -1,0 +1,122 @@
+---
+title: "Diskriminant Analizi"
+author: "Yade İrem Bilgic"
+date: "2025-12-19"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r load_data}
+aids_verisi <- read.csv("aids_veri.csv", header = TRUE, encoding = "windows-1254")
+
+```
+
+```{r variable_conversion}
+cd_variables <- c("cd40", "cd420", "cd80", "cd820")
+for (var_name in cd_variables) {aids_verisi[[var_name]] <- as.numeric(as.character(aids_verisi[[var_name]]))}
+str(aids_verisi[cd_variables])
+```
+```{r factor_check}
+aids_verisi$trt <- factor(aids_verisi$trt)
+str(aids_verisi$trt)
+
+```
+#Normallik
+```{r}
+library(funModeling)
+plot_num(aids_verisi[,20:23])
+```
+#Univariate Normality
+```{r}
+shapiro.test(aids_verisi$cd40)
+shapiro.test(aids_verisi$cd420)
+shapiro.test(aids_verisi$cd80)
+shapiro.test(aids_verisi$cd820)
+
+```
+
+```{r}
+aids_verisi<-na.omit(aids_verisi)
+summary(aids_verisi)
+```
+#Homogeneity of Covariances
+```{r}
+library(biotools)
+boxM(aids_verisi[,20:23], aids_verisi$trt)
+
+```
+#LDA
+```{r}
+aids_lda<-lda(trt~ cd40+cd420+cd80+cd820, data=aids_verisi)
+aids_lda
+```
+```{r}
+aids_ort<-apply(aids_verisi[,20:23],2 ,mean)
+aids_skor<-(-aids_ort) %*% (aids_lda$scaling)
+print(aids_skor)
+```
+
+#Grup Tahmini
+```{r}
+aids_tahmin <- predict(aids_lda)
+head(aids_tahmin$class, 20)
+
+```
+#Diskriminant Skorları
+```{r}
+head(aids_tahmin$x, 20)
+```
+
+#Anlamsız Ayırma Fonksiyonunu Sınıflamaya DAhil Etmemek İçin
+```{r}
+aids_tahmin_kisit <- predict(aids_lda, newdata = aids_verisi, dimen = 1)
+head(aids_tahmin_kisit$x)
+
+```
+#Grafikler
+```{r, warning=FALSE}
+ldahist(aids_tahmin$x[,1], g=aids_verisi$trt, xlim=c(-3,2))
+ldahist(aids_tahmin$x[,2], g=aids_verisi$trt, xlim=c(-3,2))
+ldahist(aids_tahmin$x[,3], g=aids_verisi$trt, xlim=c(-3,2))
+
+plot(aids_lda)
+```
+#Çapraz Tablo
+
+```{r}
+tablo_aids<- table(aids_verisi$trt, aids_tahmin$class)
+tablo_aids
+```
+#Doğru Sınıflanma Oranı
+```{r}
+classrate_aids<- sum(diag(tablo_aids))/sum(tablo_aids)
+classrate_aids
+```
+#Nisbi Şans 
+```{r}
+sans_aids<- as.vector(aids_lda$prior[1]^2+aids_lda$prior[2]^2+aids_lda$prior[3]^2+aids_lda$prior[4]^2)
+print(sans_aids)
+```
+#Orjinal GRup İle Tahmin GRuplarının Karşılaştırması
+```{r}
+comp_aids<- cbind(aids_verisi$trt, aids_tahmin$class)
+head(comp_aids, 20)
+```
+#3'lü Çizim
+```{r}
+library(ggplot2)
+aids_verisi$ld1 <- aids_tahmin$x[, 1]
+aids_verisi$ld2 <- aids_tahmin$x[, 2]
+ggplot(data=aids_verisi)+geom_point(aes(ld1, ld2, col=trt), size=2.5)
+```
+
+
+
+
+
+
+
+
