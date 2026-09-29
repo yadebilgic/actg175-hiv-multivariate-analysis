@@ -1,0 +1,188 @@
+---
+title: "Lojistik Regresyon"
+author: "Yade İrem Bilgic"
+date: "2025-12-20"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r load_data}
+aids_verisi <- read.csv("aids_veri.csv", header = TRUE, encoding = "windows-1254")
+
+```
+
+```{r variable_conversion}
+cd_variable <- c("cd40")
+for (var_name in cd_variable) {aids_verisi[[var_name]] <- as.numeric(as.character(aids_verisi[[var_name]]))}
+str(aids_verisi[cd_variable])
+```
+```{r factor_check}
+aids_verisi$label <- factor(aids_verisi$label)
+str(aids_verisi$label)
+
+
+aids_verisi$gender <- factor(aids_verisi$gender)
+str(aids_verisi$gender)
+
+```
+```{r}
+library(tidyverse) 
+library(modelr)    
+library(broom) 
+```
+
+#Lojistik Regresyon 
+```{r}
+model_aids <- glm(label ~ cd40 + gender, family = "binomial", data = aids_verisi)
+
+summary(model_aids)
+```
+#Ki Kare İstatistiği
+```{r}
+model_aids$deviance
+model_aids$null.deviance
+kikare <- model_aids$null.deviance- model_aids$deviance
+kikare
+```
+
+#Serbestlik Derecesi
+```{r}
+model_aids$df.null
+model_aids$df.residual
+df <-model_aids$df.null- model_aids$df.residual
+df
+```
+#Ki Kareye Ait P Hesabı
+```{r}
+kikare.p<- 1 - pchisq(kikare,df)
+kikare.p
+```
+#Hosmer Lemeshov
+```{r}
+library(ResourceSelection)
+hoslem.test(model_aids$y, fitted(model_aids))
+```
+#Modelin R² hesabı
+```{r}
+library("DescTools")
+PseudoR2(model_aids, which = c("CoxSnell","Nagelkerke","McFadden"))
+```
+#Cox ve Snell R²
+```{r}
+N <- nrow(aids_verisi)
+R.cs <- 1 - exp ((model_aids$deviance - model_aids$null.deviance) /N)
+R.cs
+```
+#Nagelkerke R²
+```{r}
+R.n<-R.cs /(1-(exp(-(model_aids$null.deviance/N))))
+R.n
+```
+#Model Katsayılarının Exp Hali ve Güven Aralıkları
+```{r}
+exp(coef(model_aids))
+exp(confint.default(model_aids,level = 0.95)) 
+```
+#Atama Tablosu
+```{r}
+
+type_pred<- fitted(model_aids)
+
+typefac <- ifelse(type_pred > 0.5, "1", "0")
+
+
+t_tab <- table(aids_verisi$label, typefac)
+
+t_tab
+```
+#Toplam Doğru Atama
+```{r}
+sum(diag(t_tab)) / sum(t_tab)
+```
+#Atama Tablosu Görselleştirme
+```{r, warning=FALSE}
+library(cvms)
+library(ggplot2)
+library(broom)   
+library(tibble)  
+
+datatib <- tibble("target" = as.character(aids_verisi$label), "prediction" = typefac)
+
+basic_table <- table(datatib)
+
+cfm <- tidy(basic_table)
+
+cfm
+```
+```{r, warning=FALSE}
+
+plot_confusion_matrix(cfm, 
+                      target_col = "target", 
+                      prediction_col = "prediction",
+                      counts_col = "n",
+                      add_normalized = FALSE,      add_row_percentages = FALSE,   
+                      font_col_percentages = font(size = 4), 
+                      font_counts = font(size = 6),          
+                      tile_border_color = "black") +         
+  xlab("Gerçek Durum (0: Sansür, 1: Başarısızlık)") +
+  ylab("Model Tahmini") +
+  theme(axis.text = element_text(size = 12, face = "bold"),
+        axis.title = element_text(size = 14, face = "bold"))
+```
+
+#Stepwise ile Lojistik Regresyon
+```{r}
+library(MASS)
+
+step_model <- step(model_aids, direction = "backward")
+
+
+summary(step_model)
+
+exp(step_model$coefficients)
+
+exp(confint.default(step_model, level = 0.95))
+```
+#Atama Tablosu
+```{r}
+
+type_pred <- fitted(step_model)
+
+
+typefac <- ifelse(type_pred > 0.5, "1", "0")
+
+
+t_tab <- table(aids_verisi$label, typefac)
+
+t_tab
+```
+#Toplam Doğru Atama
+```{r}
+sum(diag(t_tab)) / sum(t_tab)
+```
+#Atama Tablosu Görselleştirme
+```{r, warning=FALSE}
+library(cvms)
+library(ggplot2)
+library(broom)   
+library(tibble)
+
+datatib <- tibble("target" = as.character(aids_verisi$label), 
+                  "prediction" = as.character(typefac))
+
+
+
+basic_table <- table(datatib)
+basic_table
+
+
+cfm <- tidy(basic_table)
+
+
+cfm
+```
+
+
