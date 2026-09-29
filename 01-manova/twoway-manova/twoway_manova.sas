@@ -1,0 +1,52 @@
+PROC IMPORT DATAFILE="/home/u64410525/sasuser.v94/MANOVA/aids_veri.csv"
+    OUT= WORK.AIDS_Data   
+    DBMS= CSV             
+    REPLACE;              
+    GETNAMES= YES;        
+RUN;
+
+
+DATA WORK.AIDS_ANALIZE_HAZIR;
+    SET WORK.AIDS_Data;
+    
+    TRT_CLASS = TRT;
+    STRAT_CLASS = STRAT;
+    
+    IF NOT MISSING(cd40) AND NOT MISSING(cd420) AND NOT MISSING(cd80) AND NOT MISSING(cd820) 
+       AND NOT MISSING(TRT_CLASS) AND NOT MISSING(STRAT_CLASS);
+RUN;
+
+
+PROC GLM DATA=WORK.AIDS_ANALIZE_HAZIR;
+    CLASS TRT_CLASS STRAT_CLASS;
+    
+   
+    MODEL cd40 cd420 cd80 cd820 = TRT_CLASS*STRAT_CLASS; 
+    
+    MEANS TRT_CLASS*STRAT_CLASS / 
+        HOVTEST=LEVENE; 
+        
+    TITLE 'Levene Testi Sonuçları (Tüm Bağımlı Değişkenler)';
+RUN;
+
+/*Etkileşim Grubunu Oluşturma */
+DATA WORK.AIDS_ETKILESIM;
+    SET WORK.AIDS_ANALIZE_HAZIR;
+   
+    GROUPING_FACTOR = CATS(TRT_CLASS, '_', STRAT_CLASS); 
+RUN;
+
+/* Çok Yönlü MANOVA ve Tek Değişkenli ANOVA */
+PROC GLM DATA=WORK.AIDS_ANALIZE_HAZIR;
+    CLASS TRT_CLASS STRAT_CLASS;
+    
+   
+    MODEL cd40 cd420 cd80 cd820 = TRT_CLASS|STRAT_CLASS; 
+    
+  
+    MANOVA H=_ALL_ / PRINTE PRINTH SHORT; 
+    
+    TITLE 'Çok Yönlü MANOVA Sonuçları';
+RUN;
+
+

@@ -1,0 +1,65 @@
+---
+title: "Çok Yönlü Manova"
+author: "Yade İrem Bilgic"
+date: "2025-12-14"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r load_data}
+aids_verisi <- read.csv("aids_veri.csv", header = TRUE, encoding = "windows-1254")
+
+```
+
+```{r variable_conversion}
+cd_variables <- c("cd40", "cd420", "cd80", "cd820")
+for (var_name in cd_variables) {aids_verisi[[var_name]] <- as.numeric(as.character(aids_verisi[[var_name]]))}
+str(aids_verisi[cd_variables])
+
+```
+
+```{r factor_check}
+aids_verisi$trt <- factor(aids_verisi$trt)
+str(aids_verisi$trt)
+
+aids_verisi$strat <- factor(aids_verisi$strat)
+str(aids_verisi$strat)
+
+```
+
+```{r Box-m Test}
+library(heplots)
+library(car)
+dependent_vars <- aids_verisi[,c ("cd40", "cd420", "cd80", "cd820")]
+grouping_factor <- interaction(aids_verisi$trt, aids_verisi$strat)
+
+
+box_m_test <- boxM(dependent_vars, grouping_factor)
+print(box_m_test)
+
+```
+
+
+```{r MANOVA}
+cat("--- Çok Yönlü MANOVA Test Özeti (Pillai's Trace) ---\n")
+
+
+manova_model <- manova(cbind(cd40, cd420, cd80, cd820) ~ trt * strat, data= aids_verisi)
+
+print(summary(manova_model, test = "Pillai"))
+
+
+```
+
+```{r ANOVA}
+
+cat("--- Tek Değişkenli ANOVA Sonuçları (Summary.aov) ---\n")
+
+print(summary.aov(manova_model))
+
+```
+
+
