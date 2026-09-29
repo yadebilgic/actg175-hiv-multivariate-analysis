@@ -1,0 +1,132 @@
+---
+title: "Kümeleme Analizi"
+author: "Yade İrem Bilgic"
+date: "2025-12-22"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r load_data}
+aids_verisi <- read.csv("aids_veri.csv", header = TRUE, encoding = "windows-1254")
+
+```
+
+```{r variable_conversion}
+cd_variables <- c("cd40", "cd420", "cd80", "cd820")
+for (var_name in cd_variables) {aids_verisi[[var_name]] <- as.numeric(as.character(aids_verisi[[var_name]]))}
+str(aids_verisi[cd_variables])
+```
+
+#Korelasyon Matrisinin incelenmesi
+```{r, warning=FALSE}
+library(corrplot)
+
+cd_korelasyon <- cor(aids_verisi[cd_variables])
+corrplot(cor(aids_verisi[cd_variables]))
+
+```
+```{r}
+library("Hmisc")
+
+rcorr(as.matrix(aids_verisi[cd_variables]), type = "pearson")
+```
+```{r}
+
+d <- dist(aids_verisi[cd_variables], method = "euclidean")
+
+fit <- hclust(d, method = "ward.D")
+```
+
+#Hiyerarşik Kümeleme Dendogram
+```{r, warning=FALSE}
+set.seed(123)
+aids_ornek <- aids_verisi[sample(1:nrow(aids_verisi), 500), ]
+
+
+d_ornek <- dist(aids_ornek[cd_variables], method = "euclidean")
+fit_ornek <- hclust(d_ornek, method = "ward.D")
+
+library(factoextra)
+fviz_dend(fit_ornek, k = 3, cex = 0.5, palette = "jco")
+```
+
+
+
+#K-Means
+#Küme Sayısını Belirleme
+```{r}
+
+
+fviz_nbclust(aids_verisi[cd_variables], kmeans, method = "wss")
+
+
+```
+```{r}
+fviz_nbclust(aids_verisi[cd_variables], kmeans, method = "silhouette")
+```
+
+```{r}
+
+set.seed(987)
+
+km.res <- kmeans(aids_verisi[cd_variables], 3, iter.max=100, algorithm="Lloyd")
+
+t(km.res$centers)
+```
+
+#İlk İki Faktörün Çizdirilmesi
+```{r, warning=FALSE}
+library(cluster)
+
+clusplot(aids_verisi[cd_variables], km.res$cluster, 
+         main='Kümeleme Çözümünün 2D Gösterimi',
+         color=TRUE,  
+         shade=TRUE,   
+         labels=2,    
+         lines=0)     
+```
+
+```{r}
+library(factoextra)
+
+fviz_cluster(km.res, 
+             data = aids_verisi[cd_variables], 
+             palette = "jco",
+             ggtheme = theme_minimal(),
+             main = "K-Means Kumeleme Sonuclari (3 Kume)",
+             xlab = "Bilesen 1",
+             ylab = "Bilesen 2",
+             geom = "point",
+             ellipse.type = "convex")
+
+```
+
+#Veriye Gözlemin Atandığı Kümenin Eklenmesi
+```{r, warning=FALSE}
+aids_verisi$cluster<-km.res$cluster 
+aids_verisi$cluster<-as.factor(aids_verisi$cluster)
+head(aids_verisi)
+```
+
+#ANOVA
+```{r}
+library(rstatix)
+
+cd40_aov <- aov(cd40 ~ cluster, data = aids_verisi)
+summary(cd40_aov)
+
+cd420_aov <- aov(cd420 ~ cluster, data = aids_verisi)
+summary(cd420_aov)
+
+cd80_aov <- aov(cd80 ~ cluster, data = aids_verisi)
+summary(cd80_aov)
+
+cd820_aov <- aov(cd820 ~ cluster, data = aids_verisi)
+summary(cd820_aov)
+```
+
+
+
