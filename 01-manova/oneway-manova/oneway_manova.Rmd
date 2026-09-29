@@ -1,0 +1,154 @@
+---
+title: "TEK YÖNLÜ MANOVA"
+author: "Yade İrem Bilgic"
+date: "2025-12-11"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+```{r load_data}
+aids_verisi <- read.csv("aids_veri.csv", header = TRUE, encoding = "windows-1254")
+
+```
+
+```{r variable_conversion}
+cd_variables <- c("cd40", "cd420", "cd80", "cd820")
+for (var_name in cd_variables) {aids_verisi[[var_name]] <- as.numeric(as.character(aids_verisi[[var_name]]))}
+str(aids_verisi[cd_variables])
+
+```
+
+```{r factor_check}
+aids_verisi$trt <- factor(aids_verisi$trt)
+str(aids_verisi$trt)
+
+```
+
+#Veri Yapısı Ve Özeti
+```{r data_structure}
+str(aids_verisi)
+summary(aids_verisi)
+
+```
+
+
+#Tek ve Çok Değişkenli Normallik
+```{r multivariate_normality}
+library(MVN)
+dependent_vars <- as.data.frame(aids_verisi[, c("cd40", "cd420", "cd80", "cd820")])
+result_mvn <- mvn(dependent_vars, 
+                  mvn_test =  "mardia", 
+                  univariate_test = "SW") 
+
+result_mvn
+
+```
+#Logaritmik DÖnüşüm
+```{r log_donusumu}
+
+
+aids_verisi$lncd40 <- log(aids_verisi$cd40)
+aids_verisi$lncd420 <- log(aids_verisi$cd420)
+aids_verisi$lncd80 <- log(aids_verisi$cd80)
+aids_verisi$lncd820 <- log(aids_verisi$cd820)
+
+```
+
+#Dönüşüm Sonrası Normallik
+
+```{r normallik_kontrol_ln}
+library(rstatix)
+library(dplyr)
+
+
+shapiro.test(aids_verisi$lncd40)
+shapiro.test(aids_verisi$lncd420)
+shapiro.test(aids_verisi$lncd80)
+shapiro.test(aids_verisi$lncd820)
+
+```
+
+```{r log_artı_bir_donusumu}
+
+aids_verisi$lncd40 <- log(aids_verisi$cd40 + 1)
+aids_verisi$lncd420 <- log(aids_verisi$cd420 + 1)
+aids_verisi$lncd80 <- log(aids_verisi$cd80 + 1)
+aids_verisi$lncd820 <- log(aids_verisi$cd820 + 1)
+
+
+shapiro.test(aids_verisi$lncd40)
+```
+#Varyans-Kovaryans Homojenliği
+
+```{r box_m_son_deneme_3}
+library("biotools")
+
+aids_verisi$trt <- factor(aids_verisi$trt)
+
+DV_orijinal <- aids_verisi[, c("cd40", "cd420", "cd80", "cd820")]
+
+
+box_m(DV_orijinal, aids_verisi$trt)
+```
+
+#Levene Test
+```{r levene_test_kesin}
+library(car)
+
+aids_verisi$trt <- factor(aids_verisi$trt)
+
+cat("--- cd40 (Başlangıç CD4) İçin Levene Testi ---\n")
+leveneTest(cd40 ~ trt, data = aids_verisi, center = mean)
+
+cat("\n--- cd420 (Son CD4) İçin Levene Testi ---\n")
+leveneTest(cd420 ~ trt, data = aids_verisi, center = mean)
+
+cat("\n--- cd80 (Başlangıç CD8) İçin Levene Testi ---\n")
+leveneTest(cd80 ~ trt, data = aids_verisi, center = mean)
+
+cat("\n--- cd820 (Son CD8) İçin Levene Testi ---\n")
+leveneTest(cd820 ~ trt, data = aids_verisi, center = mean)
+```
+
+
+
+
+
+#MANOVA Modeli Kurulumu ve Testi
+```{r manova_analizi}
+library(car)
+library(heplots)
+library(rstatix)
+library(tidyverse)
+aids_verisi$trt <- factor(aids_verisi$trt)
+
+#Pillai Testi
+aids_manova_orijinal <- manova(cbind(cd40, cd420, cd80, cd820) ~ trt, data = aids_verisi)
+cat("\n--- MANOVA Sonucu: Pillai's Trace ---\n")
+summary(aids_manova_orijinal, test = "Pillai")
+
+cat("\n--- Tests of Between-Subjects Effects (summary.aov) ---\n")
+summary.aov(aids_manova_orijinal)
+
+
+#Post-Hoc
+cat("\n--- TÜM DEĞİŞKENLER İÇİN Games-Howell/Tamhane Muadili (Levene p <= 0.05 ise kullanılır) ---\n")
+
+cat("\ncd40 (Başlangıç CD4) - Eşit Olmayan Varyans Testi:\n")
+pairwise.t.test(aids_verisi$cd40, aids_verisi$trt, p.adj.method = "none", pool.sd = FALSE)
+
+cat("\ncd420 (Son CD4) - Eşit Olmayan Varyans Testi:\n")
+pairwise.t.test(aids_verisi$cd420, aids_verisi$trt, p.adj.method = "none", pool.sd = FALSE)
+
+cat("\ncd80 (Başlangıç CD8) - Eşit Olmayan Varyans Testi:\n")
+pairwise.t.test(aids_verisi$cd80, aids_verisi$trt, p.adj.method = "none", pool.sd = FALSE)
+
+cat("\ncd820 (Son CD8) - Eşit Olmayan Varyans Testi:\n")
+pairwise.t.test(aids_verisi$cd820, aids_verisi$trt, p.adj.method = "none", pool.sd = FALSE)
+
+```
+ 
