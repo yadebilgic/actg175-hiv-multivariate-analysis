@@ -1,6 +1,6 @@
 # ACTG 175 HIV Clinical Trial: Multivariate Statistical Analysis
 
-[![Read Clinical Report](https://img.shields.io/badge/📄_Read_Clinical_Report-PDF-blue?style=for-the-badge)](./ACTG175_Multivariate_Analysis_Report.pdf)
+[![Read Technical Report](https://img.shields.io/badge/📄_Read_Technical_Report-PDF-blue?style=for-the-badge)](./Yade_Irem_Bilgic_ACTG175_Multivariate_Analysis_Report.pdf)
 
 A comprehensive cross-platform multivariate statistical analysis (conducted in R, SAS, and IBM SPSS) evaluating immunological response patterns, treatment efficacy, and clinical progression in 2,139 HIV-1 infected patients from the ACTG 175 randomized clinical trial.
 
@@ -56,4 +56,4 @@ A comprehensive cross-platform multivariate statistical analysis (conducted in R
 - **Yade İrem Bilgiç** – Statistician / Data Analyst
 - **Affiliation:** B.Sc. in Statistics, Mimar Sinan Fine Arts University 
 - **Email:** yadeirem2004@gmail.com
-- - **Technical Report:** [`ACTG175_Multivariate_Analysis_Report.pdf`](./ACTG175_Multivariate_Analysis_Report.pdf)
+- **Technical Report:** [`Yade_Irem_Bilgic_ACTG175_Multivariate_Analysis_Report.pdf`](./Yade_Irem_Bilgic_ACTG175_Multivariate_Analysis_Report.pdf)
