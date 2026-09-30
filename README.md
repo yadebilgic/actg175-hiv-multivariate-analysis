@@ -8,7 +8,7 @@ A comprehensive cross-platform multivariate statistical analysis (conducted in R
 - **SAS Studio:** Advanced modeling via `PROC DISCRIM`, `PROC LOGISTIC`, and `PROC GLM` procedures for cross-platform model validation.
 - **IBM SPSS Statistics:** One-Way & Two-Way MANOVA, Principal Component Analysis (PCA), Exploratory Factor Analysis (Varimax), Canonical Discriminant Analysis, and K-Means Clustering.
 
- ## 📊 Dataset Overview
+## 📊 Dataset Overview
 
 - **Sample Size (N):** 2,139 patient records
 - **Attributes:** 15 categorical and 9 continuous variables
@@ -18,8 +18,8 @@ A comprehensive cross-platform multivariate statistical analysis (conducted in R
   - `trt`: 4 randomized treatment arms (ZDV monotherapy, ZDV + ddI, ZDV + Zalcitabine, ddI monotherapy)
   - `strat`: Antiretroviral pre-treatment history (Naive, Short-term, Long-term)
   - `label`: Clinical endpoint indicator (0: Censored, 1: Disease progression or death)
- 
-  ## 🔬 Multivariate Analysis Pipeline & Key Findings
+
+## 🔬 Multivariate Analysis Pipeline & Key Findings
 
 ### 1. Multivariate Analysis of Variance (MANOVA)
 - **One-Way MANOVA:** Due to violations of multivariate normality (Mardia tests $p < 0.001$) and equality of covariance matrices (Box's M = 149.38, $F = 4.963, p < 0.001$), **Pillai's Trace** was utilized ($\text{Trace} = 0.056, F = 10.10, p < 0.001$). Post-hoc pairwise comparisons revealed that treatment differences were exclusively driven by Week 20 CD4 recovery (`cd420`, $p < 0.001$), where the **ZDV + ddI** combination achieved the highest therapeutic response (mean: 403.17 cells/mm³) compared to ZDV monotherapy (mean: 336.14 cells/mm³).
