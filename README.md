@@ -52,5 +52,5 @@ A comprehensive cross-platform multivariate statistical analysis (conducted in R
 ## 👤 Author & Contact
 
 - **Yade İrem Bilgiç** – Statistician / Data Analyst
-- **Education:** B.Sc. in Statistics, Mimar Sinan Fine Arts University (2025)
+- **Education:** B.Sc. in Statistics, Mimar Sinan Fine Arts University 
 - **Email:** yadeirem2004@gmail.com
